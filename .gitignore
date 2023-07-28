@@ -110,3 +110,11 @@ ENV/
 # Pycharm
 .idea
 
+# mp4
+*.mp4
+
+# weight
+*.pt
+
+# output
+output/
