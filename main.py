@@ -26,7 +26,7 @@ cudnn.benchmark = True
 
 # function will start sub proccess depends on FFMPEG to handle YOLO output stream to HLS/RTSP stream
 # call once when intial
-HLS_OUTPUT = 'C:/Users/jeongho/Desktop/Django/DjangoOpencv/detectme/yolov5-object-tracking/runs/detect/hls/'
+HLS_OUTPUT = 'C:/Users/KMW/Desktop/django/static/video/hls/'
 
 
 def run_ffmpeg(width, height, fps):
@@ -51,7 +51,8 @@ class VideoTracker(object):
         print('Initialize DeepSORT & YOLO-V5')
         # ***************** Initialize ******************************************************
         self.args = args
-
+        webcam = args.source.isnumeric() or args.source.endswith('.txt') or args.source.lower().startswith(
+            ('rtsp://', 'rtmp://', 'http://', 'https://'))
         # image size in detector, default is 640
         self.img_size = args.img_size
         self.frame_interval = args.frame_interval       # frequency
@@ -64,9 +65,9 @@ class VideoTracker(object):
             cv2.namedWindow("test", cv2.WINDOW_NORMAL)
             cv2.resizeWindow("test", args.display_width, args.display_height)
 
-        if args.cam != -1:
-            print("Using webcam " + str(args.cam))
-            self.vdo = cv2.VideoCapture(args.cam)
+        if webcam:
+            print("Using webcam " + str(args.source))
+            self.vdo = cv2.VideoCapture(args.source)
         else:
             self.vdo = cv2.VideoCapture()
 
@@ -94,8 +95,10 @@ class VideoTracker(object):
                 "Running in cpu mode which maybe very slow!", UserWarning)
 
     def __enter__(self):
+        webcam = args.source.isnumeric() or args.source.endswith('.txt') or args.source.lower().startswith(
+            ('rtsp://', 'rtmp://', 'http://', 'https://'))
         # ************************* Load video from camera *************************
-        if self.args.cam != -1:
+        if webcam:
             print('Camera ...')
             ret, frame = self.vdo.read()
             assert ret, "Error: Camera error"
@@ -284,7 +287,7 @@ if __name__ == '__main__':
 
     # YOLO-V5 parameters
     parser.add_argument('--weights', type=str,
-                        default='yolov5/weights/yolov5s.pt', help='model.pt path')
+                        default='yolov5/weights/crowdhuman_yolov5m.pt', help='model.pt path')
     parser.add_argument('--img-size', type=int, default=640,
                         help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float,
