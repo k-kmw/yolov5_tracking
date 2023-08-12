@@ -20,13 +20,14 @@ import sys
 
 currentUrl = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(currentUrl, 'yolov5')))
-
+cnt = 0
+ids = []
 
 cudnn.benchmark = True
 
 # function will start sub proccess depends on FFMPEG to handle YOLO output stream to HLS/RTSP stream
 # call once when intial
-HLS_OUTPUT = 'C:/Users/KMW/Desktop/django/static/video/hls/'
+HLS_OUTPUT = 'C:/Users/User/django/static/video/hls/'
 
 
 def run_ffmpeg(width, height, fps):
@@ -139,17 +140,18 @@ class VideoTracker(object):
             print(exc_type, exc_value, exc_traceback)
 
     def run(self):
-        ffmpeg_process = run_ffmpeg(978, 720, 24)
+        ffmpeg_process = run_ffmpeg(1920, 1080, 30)
         yolo_time, sort_time, avg_fps = [], [], []
         t_start = time.time()
 
         idx_frame = 0
         last_out = None
+        line = [0, 500, 2000, 500]
         while self.vdo.grab():
             # Inference *********************************************************************
             t0 = time.time()
             _, img0 = self.vdo.retrieve()
-
+            cv2.line(img0, (line[0], line[1]), (line[2], line[3]), (255, 0, 0), 5)   # add1
             if idx_frame % self.args.frame_interval == 0:
                 outputs, yt, st = self.image_track(
                     img0)        # (#ID, 5) x1,y1,x2,y2,id
@@ -187,6 +189,7 @@ class VideoTracker(object):
             ffmpeg_process.stdin.write(img0)
             if self.args.save_path:
                 self.writer.write(img0)
+                cv2.putText(img0, 'cnt: ' + str(cnt), (50, 50), 1, 2, (0, 255, 255), thickness=2)
 
             if self.args.save_txt:
                 with open(self.args.save_txt + str(idx_frame).zfill(4) + '.txt', 'a') as f:
@@ -254,6 +257,16 @@ class VideoTracker(object):
 
             # ****************************** deepsort ****************************
             outputs = self.deepsort.update(bbox_xywh, confs, im0)
+            tracks = self.deepsort.tracker.tracks
+            print("===========================================")
+            for track in tracks:
+                if(track.track_id not in ids and len(track.centroidarr) >= 3 and track.centroidarr[-3][1] < 500 and track.centroidarr[-1][1] > 500):
+                    global cnt
+                    cnt+=1
+                    ids.append(track.track_id)
+                    print(ids)
+                
+
             # (#ID, 5) x1,y1,x2,y2,track_ID
         else:
             outputs = torch.zeros((0, 5))
@@ -267,7 +280,7 @@ if __name__ == '__main__':
     # input and output
     # file/folder, 0 for webcam
     parser.add_argument('--source', type=str,
-                        default='input_480.mp4', help='source')
+                        default='MOT17-04-SDP.mp4', help='source')
     parser.add_argument('--save_path', type=str, default='output/',
                         help='output folder')  # output folder
     parser.add_argument("--frame_interval", type=int, default=2)
