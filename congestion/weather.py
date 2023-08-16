@@ -4,7 +4,6 @@ import json
 
 
 def check_weather():
-
     now = datetime.now()
 
     # 조회 기간 시작 년/월/일/시
@@ -38,8 +37,8 @@ def check_weather():
               'pageNo': '1',  # 페이지 번호
               'numOfRows': '8',  # 한 페이지 결과 수
               'dataType': 'JSON',  # 응답 자료 형식
-              'base_date': '20230816',
-              'base_time': '1100',
+              'base_date': start_day,
+              'base_time': s_hour,
               'nx': '98',
               'ny': '77'
               }
@@ -51,15 +50,26 @@ def check_weather():
 
     datas = json_ob['response']['body']['items']['item']
 
-    data = {}
+    tm = 0
+    hu = 0
     for d in datas:
         if d['category'] == 'REH':
-            data['humidity'] = d['obsrValue']
+            hu = d['obsrValue']
         elif d['category'] == 'T1H':
-            data['temperature'] = d['obsrValue']
-        elif len(data) == 2:
-            break
+            tm = d['obsrValue']
 
-    # print(data)
+    print(tm, ' ', hu)
+
+    data = {'discomfort': calculate_discomfort(tm, hu)}
 
     return data
+
+
+def calculate_discomfort(tm, hu):
+    f_tm = float(tm)
+    f_hu = float(hu)
+    discomfort = f_tm - 0.55 * (1 - 0.01 * f_hu) * (f_tm - 14.5)
+
+    # 21 도 이하는 쾌적, 21~24 : 반이하 불쾌, 24~27 반 이상이 불쾌, 29-32: 대부분 불쾌, 32: 조치 필요
+
+    return discomfort
