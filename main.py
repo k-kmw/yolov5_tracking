@@ -139,7 +139,7 @@ class VideoTracker(object):
             print(exc_type, exc_value, exc_traceback)
 
     def run(self):
-        ffmpeg_process = run_ffmpeg(978, 720, 24)
+        ffmpeg_process = run_ffmpeg(978, 720, 24)  # hls 변환하기 위한 subprocess 생성
         yolo_time, sort_time, avg_fps = [], [], []
         t_start = time.time()
 
@@ -148,11 +148,10 @@ class VideoTracker(object):
         while self.vdo.grab():
             # Inference *********************************************************************
             t0 = time.time()
-            _, img0 = self.vdo.retrieve()
+            _, img0 = self.vdo.retrieve() # 프레임에서 이미지를 얻음
 
             if idx_frame % self.args.frame_interval == 0:
-                outputs, yt, st = self.image_track(
-                    img0)        # (#ID, 5) x1,y1,x2,y2,id
+                outputs, yt, st = self.image_track(img0)        # (#ID, 5) x1,y1,x2,y2,id
                 last_out = outputs
                 yolo_time.append(yt)
                 sort_time.append(st)
@@ -267,7 +266,7 @@ if __name__ == '__main__':
     # input and output
     # file/folder, 0 for webcam
     parser.add_argument('--source', type=str,
-                        default='input_480.mp4', help='source')
+                        default='rtsp://localhost:8554/live', help='source')
     parser.add_argument('--save_path', type=str, default='output/',
                         help='output folder')  # output folder
     parser.add_argument("--frame_interval", type=int, default=2)
@@ -295,7 +294,7 @@ if __name__ == '__main__':
     parser.add_argument('--iou-thres', type=float,
                         default=0.5, help='IOU threshold for NMS')
     parser.add_argument('--classes', nargs='+', type=int,
-                        default=[1], help='filter by class')
+                        default=[0], help='filter by class')
     parser.add_argument('--agnostic-nms', action='store_true',
                         help='class-agnostic NMS')
     parser.add_argument('--augment', action='store_true',
