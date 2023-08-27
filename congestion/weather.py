@@ -2,6 +2,8 @@ from datetime import datetime
 import requests
 import json
 
+from congestion.cal import calculate_congestion
+
 
 def check_weather():
     now = datetime.now()
@@ -38,7 +40,7 @@ def check_weather():
               'numOfRows': '8',  # 한 페이지 결과 수
               'dataType': 'JSON',  # 응답 자료 형식
               'base_date': start_day,
-              'base_time': s_hour,
+              'base_time': '0100',
               'nx': '98',
               'ny': '77'
               }
@@ -60,9 +62,8 @@ def check_weather():
 
     print(tm, ' ', hu)
 
-    data = {'discomfort': calculate_discomfort(tm, hu)}
-
-    return data
+    dis = calculate_discomfort(tm, hu)
+    return calculate_congestion(dis)
 
 
 def calculate_discomfort(tm, hu):
