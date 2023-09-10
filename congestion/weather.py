@@ -9,11 +9,11 @@ def check_weather():
     now = datetime.now()
 
     # 조회 기간 시작 년/월/일/시
-
     year = now.year
     month = now.month
     day = now.day
     hour = now.hour
+    minute = now.minute
 
     if month < 10:
         s_month = '0' + str(month)
@@ -25,8 +25,12 @@ def check_weather():
     else:
         s_day = str(day)
 
-    if hour < 10:
+    if hour < 10 & minute <= 20:
+        s_hour = '0' + str(hour-1) + '00'
+    elif hour < 10 & minute > 20:
         s_hour = '0' + str(hour) + '00'
+    elif hour >= 10 & minute <= 20:
+        s_hour = str(hour-1) + '00'
     else:
         s_hour = str(hour) + '00'
 
@@ -40,7 +44,7 @@ def check_weather():
               'numOfRows': '8',  # 한 페이지 결과 수
               'dataType': 'JSON',  # 응답 자료 형식
               'base_date': start_day,
-              'base_time': '0100',
+              'base_time': s_hour,
               'nx': '98',
               'ny': '77'
               }
@@ -60,10 +64,10 @@ def check_weather():
         elif d['category'] == 'T1H':
             tm = d['obsrValue']
 
-    print(tm, ' ', hu)
+    # print(tm, ' ', hu)
 
     dis = calculate_discomfort(tm, hu)
-    return calculate_congestion(dis)
+    return calculate_congestion(dis, tm)
 
 
 def calculate_discomfort(tm, hu):

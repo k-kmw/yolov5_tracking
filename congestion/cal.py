@@ -1,8 +1,7 @@
 from congestion.models import Bus
 
 
-def calculate_congestion(dis):
-
+def calculate_congestion(dis, tm):
     bus = Bus.objects.last()
 
     cnt = bus.peopleNumber
@@ -27,5 +26,8 @@ def calculate_congestion(dis):
         else:
             bus.congestion = "매우 혼잡"
 
-    return {'congestion': bus.congestion,
+    bus.save()
+
+    return {'weather': tm,
+            'congestion': bus.congestion,
             'peopleNumber': bus.peopleNumber}
